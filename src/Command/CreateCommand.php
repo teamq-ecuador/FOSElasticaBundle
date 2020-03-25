@@ -57,8 +57,7 @@ class CreateCommand extends Command
 
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-        $indexName = $input->getOption('index');
-        $indexes = null === $indexName ? array_keys($this->indexManager->getAllIndexes()) : [$indexName];
+        $indexes = (null !== $index = $input->getOption('index')) ? [$index] : array_keys($this->indexManager->getAllIndexes());
 
         foreach ($indexes as $indexName) {
             $output->writeln(sprintf('<info>Creating</info> <comment>%s</comment>', $indexName));
@@ -70,6 +69,12 @@ class CreateCommand extends Command
             }
             $mapping = $this->mappingBuilder->buildIndexMapping($indexConfig);
             $index->create($mapping, false);
+
+            if ($indexConfig->isUseAlias()) {
+                $index->addAlias($indexName);
+            }
         }
+
+        return 0;
     }
 }
